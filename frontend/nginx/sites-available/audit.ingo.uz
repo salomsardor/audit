@@ -1,0 +1,55 @@
+server {
+    listen 80;
+    server_name audit.ingo.uz;
+   # root /var/www/audit.ingo.uz/frontend/web;
+    root /home/ubuntu/audit.ingo.uz/frontend/web;
+    index index.php;  # Add or update this line
+    access_log  /var/log/nginx/80ingo.access.log;
+    error_log   /var/log/nginx/80ingo.error.log;
+
+    location / {
+        try_files $uri $uri/ /frontend/web/index.php?$args;
+    }
+
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+
+server {
+        listen 443 ssl http2;
+        server_name audit.ingo.uz;
+
+#        root /var/www/audit.ingo.uz/frontend/web;
+        root /home/ubuntu/audit.ingo.uz/frontend/web;
+        index index.php;
+        access_log  /var/log/nginx/443ingo.access.log;
+        error_log   /var/log/nginx/443ingo.error.log;
+
+        ssl_certificate /home/ubuntu/ssl/certificate.crt;
+        ssl_certificate_key /home/ubuntu/ssl/private.key;
+
+    location / {
+       #try_files $uri $uri/ /index.php?$args;
+       try_files $uri $uri/ /index.php$is_args$args;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+
+

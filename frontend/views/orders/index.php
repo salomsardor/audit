@@ -54,7 +54,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 },
             ],
 
-//            'user_id',
+            'created_at',
 //            'file',
             [
                 'attribute'=>'Fayl',

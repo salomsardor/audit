@@ -3,6 +3,8 @@
 namespace frontend\controllers;
 
 use app\models\AuthAssignment;
+use app\models\data\Departaments;
+use app\models\Work;
 use frontend\models\ResendVerificationEmailForm;
 use frontend\models\VerifyEmailForm;
 use Yii;
@@ -22,12 +24,33 @@ use frontend\models\ContactForm;
  */
 class SiteController extends Controller
 {
-    public $layout = 'login';
+//    public $layout = 'login';
     /**
      * {@inheritdoc}
      */
     public function behaviors()
     {
+        if (!Yii::$app->user->isGuest) {
+            $user_id = Yii::$app->user->id;
+            $role = AuthAssignment::findOne(['user_id' => $user_id]);
+            $role = $role->item_name?$role->item_name:0;
+            if ($role === 'Administrator') {
+                $this->layout= 'main';
+            }
+            if ($role === 'admin_audit') {
+                $this->layout= 'main';
+            }
+            if ($role === 'auditor') {
+                $this->layout= 'auditors';
+            }
+            if ($role === 'departaments') {
+                $this->layout= 'departaments';
+            }
+            if ($role === 'monitoring') {
+                $this->layout= 'main';
+            }
+        }
+
         return [
             'access' => [
                 'class' => AccessControl::class,
@@ -77,7 +100,12 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        $user_id = Yii::$app->user->id;
+        $dep_id = \common\models\User::findOne($user_id)->dep_id;
+        $dep_name = Departaments::findOne($dep_id)->name;
+        return $this->render( 'index',[
+            'dep_name'=>$dep_name,
+            ]);
     }
 
     /**
@@ -87,30 +115,35 @@ class SiteController extends Controller
      */
     public function actionLogin()
     {
+        $this->layout = 'login';
         if (!Yii::$app->user->isGuest) {
             return $this->goHome();
         }
 
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
-//            return $this->goBack();
             $user_id = Yii::$app->user->id;
             $role = AuthAssignment::findOne(['user_id' => $user_id]);
             $role = $role->item_name;
             if ($role === 'Administrator') {
-                return $this->render('/dashboard/index');
+                $this->layout= 'main';
+                return $this->goBack();
             }
             if ($role === 'admin_audit') {
-                return $this->render('/dashboard/index');
+                $this->layout= 'main';
+                return $this->goBack();
             }
             if ($role === 'auditor') {
-                return $this->render('/work/index');
+                $this->layout= 'main';
+                return $this->goBack();
             }
             if ($role === 'departaments') {
-                return $this->render('/worklist/list');
+                $this->layout= 'departaments';
+                return $this->goBack();
             }
             if ($role === 'monitoring') {
-                return $this->render('/dashboard/index');
+                $this->layout= 'main';
+                return $this->goBack();
             }
         }
 

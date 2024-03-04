@@ -2,8 +2,10 @@
 
 
 use app\models\data\Branches;
+use app\models\data\Departaments;
 use app\models\data\Mistakes;
 use app\models\data\Regions;
+use app\models\Work;
 use frontend\models\Worklist;
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -13,6 +15,11 @@ use yii\grid\GridView;
 /** @var yii\web\View $this */
 /** @var app\models\WorklistSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
+
+$user_id = Yii::$app->user->id;
+$dep_id = \common\models\User::findOne($user_id)->dep_id;
+$list = Work::find()->where(['departament_id' => $dep_id, 'work_status'=>0])->all();
+$dep_name = Departaments::findOne($dep_id)->name;
 
 $this->title = $dep_name;
 $this->params['breadcrumbs'][] = $this->title;

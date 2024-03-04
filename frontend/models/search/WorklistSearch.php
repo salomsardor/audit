@@ -2,7 +2,9 @@
 
 namespace app\models\search;
 
+use app\models\AuthAssignment;
 use frontend\models\Worklist;
+use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 
@@ -40,8 +42,12 @@ class WorklistSearch extends Worklist
      */
     public function search($params)
     {
-        $query = Worklist::find();
+        $user_id = Yii::$app->user->id;
+        $dep_id = \common\models\User::findOne($user_id)->dep_id;
+        $role = AuthAssignment::findOne(['user_id' => $user_id]);
+        $role = $role->item_name;
 
+        $query = Worklist::find();
 
         // add conditions that should always apply here
 
@@ -58,11 +64,21 @@ class WorklistSearch extends Worklist
         }
 
         // grid filtering conditions
-        $query->andFilterWhere([
-            'id' => $this->id,
-            'work_id' => $this->work_id,
-            'status' => $this->status,
-        ]);
+        if ($role === 'Administrator') {
+            $query->andFilterWhere([
+                'id' => $this->id,
+                'work_id' => $this->work_id,
+                'status' => $this->status,
+            ]);
+        }else {
+            $query->andFilterWhere([
+                'id' => $this->id,
+                'work_id' => $this->work_id,
+                'status' => $this->status,
+                'dep_id' => $dep_id,
+            ]);
+        }
+
 
         $query->andFilterWhere(['like', 'file', $this->file])
             ->andFilterWhere(['like', 'commet', $this->commet]);

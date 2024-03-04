@@ -12,12 +12,17 @@ use app\models\data\Mistakes;
 class MistakesSearch extends Mistakes
 {
     /**
+     * @var mixed|null
+     */
+
+
+    /**
      * {@inheritdoc}
      */
     public function rules()
     {
         return [
-            [['code', 'quantity', 'status', 'head_mistakes_group_code', 'mistakes_group_code'], 'integer'],
+            [['code','uzlashtirish', 'quantity', 'status', 'head_mistakes_group_code', 'mistakes_group_code'], 'integer'],
             [['name', 'create_at'], 'safe'],
         ];
     }
@@ -59,6 +64,7 @@ class MistakesSearch extends Mistakes
         // grid filtering conditions
         $query->andFilterWhere([
             'code' => $this->code,
+            'uzlashtirish'=> $this->uzlashtirish,
             'quantity' => $this->quantity,
             'status' => $this->status,
             'create_at' => $this->create_at,

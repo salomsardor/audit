@@ -41,8 +41,8 @@ class Mistakes extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['code', 'name', 'quantity', 'status', 'head_mistakes_group_code', 'mistakes_group_code'], 'required'],
-            [['code', 'quantity', 'status', 'head_mistakes_group_code', 'mistakes_group_code'], 'integer'],
+            [['code', 'name', 'quantity', 'status','uzlashtirish', 'head_mistakes_group_code', 'mistakes_group_code'], 'required'],
+            [['code', 'quantity', 'status','uzlashtirish', 'head_mistakes_group_code','uzlashtirish', 'mistakes_group_code'], 'integer'],
             [['create_at'], 'safe'],
             [['name'], 'string', 'max' => 200],
             [['code'], 'unique'],

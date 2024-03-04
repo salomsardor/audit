@@ -13,6 +13,7 @@ use yii\web\UploadedFile;
  * @property int $branch_id
  * @property int $user_id
  * @property string $file
+ * @property string created_at
  *
  * @property TekDavBartaraf[] $tekDavBartarafs
  * @property TekdanKeyinBartaraf[] $tekdanKeyinBartarafs
@@ -37,6 +38,7 @@ class Orders extends \yii\db\ActiveRecord
             [['code', 'region_id', 'branch_id'], 'integer'],
             [['file'], 'string', 'max' => 255],
             [['code'], 'unique'],
+            [['created_at'], 'safe'],
         ];
     }
 
@@ -58,7 +60,7 @@ class Orders extends \yii\db\ActiveRecord
         if ($this->validate()) {
             $file = UploadedFile::getInstance($this, 'file');
             if ($file !== null) {
-                $filePath = 'uploads/' . $id . '.' . $file->extension;
+                $filePath = 'uploads/farmoyish/' . $id . '.' . $file->extension;
                 if ($file->saveAs($filePath)) {
                     $this->file = $filePath;
                     return true;

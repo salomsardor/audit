@@ -23,18 +23,12 @@ use yii\widgets\ActiveForm;
     </div>
     <div class="row">
         <div class="col-md-7">
-<!--            --><?//= $form->field($model, 'status')->textInput() ?>
+
         </div>
         <div class="col-md-7">
             <?= $form->field($model, 'file')->fileInput(['class' => 'btn btn-primary']) ?>
         </div>
     </div>
-
-
-
-
-
-
     <div class="form-group">
         <?= Html::submitButton('Yuborish', ['class' => 'btn btn-success']) ?>
     </div>

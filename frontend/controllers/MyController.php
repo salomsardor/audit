@@ -60,7 +60,7 @@ class MyController extends Controller
         $mistakesCounts = Mistakes::find()->where(['head_mistakes_group_code'=>$id])->count();
 
         if ($mistakesCounts>0) {
-            echo "<option value=''></option>";
+
             foreach ($mistakes as $misktake) {
                 echo "<option value='".$misktake->code."'>".$misktake->name."</option>";
             }
@@ -76,6 +76,13 @@ class MyController extends Controller
         $status = Status::findOne($mistakes->status);
 
         echo "<option value='".$status->id."'>".$status->name."</option>";
+
+    }
+    public function actionListqiymat($id)
+    {
+        $mistakes = Mistakes::findOne($id);
+
+        echo $mistakes->quantity;
 
     }
     public function actionStatus($id)

@@ -2,6 +2,7 @@
 
 namespace frontend\controllers;
 
+use app\models\AuthAssignment;
 use app\models\data\Quantity;
 use app\models\data\QuantitySearch;
 use yii\web\Controller;
@@ -18,6 +19,26 @@ class QuantityController extends Controller
      */
     public function behaviors()
     {
+        if (!Yii::$app->user->isGuest) {
+            $user_id = Yii::$app->user->id;
+            $role = AuthAssignment::findOne(['user_id' => $user_id]);
+            $role = $role->item_name?$role->item_name:0;
+            if ($role === 'Administrator') {
+                $this->layout= 'main';
+            }
+            if ($role === 'admin_audit') {
+                $this->layout= 'main';
+            }
+            if ($role === 'auditor') {
+                $this->layout= 'auditors';
+            }
+            if ($role === 'departaments') {
+                $this->layout= 'departaments';
+            }
+            if ($role === 'monitoring') {
+                $this->layout= 'main';
+            }
+        }
         return array_merge(
             parent::behaviors(),
             [

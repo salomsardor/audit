@@ -2,23 +2,39 @@
 
 namespace frontend\controllers;
 
+use app\models\AuthAssignment;
 use app\models\data\Branches;
-use app\models\data\BranchesSearch;
-use app\models\data\Departaments;
+use app\models\search\WorkSearch;
+use app\models\Work;
+use Yii;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
-/**
- * BranchesController implements the CRUD actions for Branches model.
- */
 class DashboardController extends Controller
 {
-    /**
-     * @inheritDoc
-     */
     public function behaviors()
     {
+        if (!Yii::$app->user->isGuest) {
+            $user_id = Yii::$app->user->id;
+            $role = AuthAssignment::findOne(['user_id' => $user_id]);
+            $role = $role->item_name?$role->item_name:0;
+            if ($role === 'Administrator') {
+                $this->layout= 'main';
+            }
+            if ($role === 'admin_audit') {
+                $this->layout= 'main';
+            }
+            if ($role === 'auditor') {
+                $this->layout= 'auditors';
+            }
+            if ($role === 'departaments') {
+                $this->layout= 'departaments';
+            }
+            if ($role === 'monitoring') {
+                $this->layout= 'main';
+            }
+        }
         return array_merge(
             parent::behaviors(),
             [
@@ -32,27 +48,38 @@ class DashboardController extends Controller
         );
     }
 
-    /**
-     * Lists all Branches models.
-     *
-     * @return string
-     */
     public function actionIndex()
     {
-        return $this->render('index');
+        $searchModel = new WorkSearch();
+        $departamentsData = $searchModel->search2($this->request->queryParams);
+
+        return $this->render('index', [
+            'searchModel' => $searchModel,
+            'departamentsData' => $departamentsData,
+        ]);
+
+    }
+    public function actionAll()
+    {
+        return $this->render('all');
+    }
+    public function actionUzlashtirish()
+    {
+        $searchModel = new WorkSearch();
+        $departamentsData = $searchModel->uzlashtirish($this->request->queryParams);
+
+        return $this->render('uzlashtirish', [
+            'searchModel' => $searchModel,
+            'departamentsData' => $departamentsData,
+        ]);
     }
 
-    /**
-     * Displays a single Branches model.
-     * @param int $id ID
-     * @return string
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionDep($id)
+
+    public function actionIndex2($year = "1", $region = '1', $farmoyish = '1')
     {
-        $dep = Departaments::findOne($id);
-        return $this->render('dep', [
-            'dep_name' => $dep->name,
+        $model = Work::find()->all();
+        return $this->render('index2', [
+            'model' => $model,
         ]);
     }
     public function actionView($id)
@@ -62,11 +89,6 @@ class DashboardController extends Controller
         ]);
     }
 
-    /**
-     * Creates a new Branches model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return string|\yii\web\Response
-     */
     public function actionCreate()
     {
         $model = new Branches();
@@ -84,13 +106,6 @@ class DashboardController extends Controller
         ]);
     }
 
-    /**
-     * Updates an existing Branches model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param int $id ID
-     * @return string|\yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
@@ -104,27 +119,13 @@ class DashboardController extends Controller
         ]);
     }
 
-    /**
-     * Deletes an existing Branches model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param int $id ID
-     * @return \yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
-
         return $this->redirect(['index']);
     }
 
-    /**
-     * Finds the Branches model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param int $id ID
-     * @return Branches the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
+
     protected function findModel($id)
     {
         if (($model = Branches::findOne(['id' => $id])) !== null) {

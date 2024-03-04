@@ -2,11 +2,14 @@
 
 namespace frontend\controllers;
 
+use app\models\AuthAssignment;
 use app\models\data\Departaments;
 use app\models\data\Regions;
+use app\models\DocLog;
 use app\models\search\WorklistSearch;
 
 use app\models\Work;
+use app\models\Xabar;
 use frontend\models\Worklist;
 use Yii;
 use yii\data\ActiveDataProvider;
@@ -20,11 +23,33 @@ use yii\web\User;
  */
 class WorklistController extends MyController
 {
+
     /**
      * @inheritDoc
      */
     public function behaviors()
     {
+        if (!Yii::$app->user->isGuest) {
+            $user_id = Yii::$app->user->id;
+            $role = AuthAssignment::findOne(['user_id' => $user_id]);
+            $role = $role->item_name?$role->item_name:0;
+            if ($role === 'Administrator') {
+                $this->layout= 'main';
+            }
+            if ($role === 'admin_audit') {
+                $this->layout= 'main';
+            }
+            if ($role === 'auditor') {
+                $this->layout= 'auditors';
+            }
+            if ($role === 'departaments') {
+                $this->layout= 'departaments';
+            }
+            if ($role === 'monitoring') {
+                $this->layout= 'main';
+            }
+        }
+
         return array_merge(
             parent::behaviors(),
             [
@@ -45,6 +70,14 @@ class WorklistController extends MyController
      */
     public function actionIndex()
     {
+        $user_id = Yii::$app->user->id;
+        $dep_id = \common\models\User::findOne($user_id)->dep_id;
+        $role = AuthAssignment::findOne(['user_id' => $user_id]);
+        $role = $role->item_name;
+        if ($role === 'Administrator') {
+            $searchModel = new WorklistSearch();
+            $dataProvider = $searchModel->search($this->request->queryParams);
+        }
         $searchModel = new WorklistSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
 
@@ -60,8 +93,6 @@ class WorklistController extends MyController
         $dep_id = \common\models\User::findOne($user_id)->dep_id;
         $list = Worklist::find()->where(['dep_id' => $dep_id])->all();
         $dep_name = Departaments::findOne($dep_id)->name;
-
-
         return $this->render('mylist', [
             'list' => $list,
             'dep_name' => $dep_name,
@@ -72,7 +103,9 @@ class WorklistController extends MyController
     {
         $user_id = Yii::$app->user->id;
         $dep_id = \common\models\User::findOne($user_id)->dep_id;
-        $list = Work::find()->where(['departament_id' => $dep_id, 'work_status'=>0])->all();
+        $list = Work::find()->where(['departament_id' => $dep_id])
+            ->andWhere(['IN', 'work_status', [0, 2]])
+            ->all();
         $dep_name = Departaments::findOne($dep_id)->name;
 
 
@@ -84,24 +117,55 @@ class WorklistController extends MyController
 
     public function actionEdit($id)
     {
-        $model = new Worklist();
+
+        $model = Worklist::findOne(['work_id'=>$id]);
+
+        $work = Work::findOne($id);
+        $status_old = $work->work_status;
+        $work->work_status = 1;
+        $user_id = Yii::$app->user->id;
+
+        $doc_log = new DocLog();
+        $doc_log->work_id = $id;
+        $doc_log->user_id = $user_id;
+        $doc_log->status_old = $status_old;
+        $doc_log->status_new = $status_old;
+        $doc_log->action = "document ochildi";
+        $doc_log->ip = Yii::$app->request->userIP;
+        $doc_log->save();
+
+        if (!isset($model->work_id))
+            $model = new Worklist();
 
         if ($this->request->isPost) {
-            $user_id = Yii::$app->user->id;
+
             $dep_id = \common\models\User::findOne($user_id)->dep_id;
             $model->dep_id = $dep_id;
+//            $model->mistake_name = ??
 
             if ($model->upload($id)) {
                 $fileExtension = pathinfo($model->file, PATHINFO_EXTENSION); // Faylning uzantisi
                 $file = $id . '.' . $fileExtension;
-                $model->save();
+//               $model->save();
+
             }
 
             if ($model->load($this->request->post())) {
                 $model->file = $file;
+                $model->status = 1;
                 $work = Work::findOne($id);
+                $status_old = $work->work_status;
                 $work->work_status = 1;
-                if ($model->save() && $work->save()) {
+
+                $doc_log = new DocLog();
+                $doc_log->work_id = $id;
+                $doc_log->user_id = $user_id;
+                $doc_log->status_old = $status_old;
+                $doc_log->status_new = $work->work_status;
+                $doc_log->action = "Tasdiqlash uchun yuborildi";
+                $doc_log->ip = Yii::$app->request->userIP;
+
+                if ($model->save() && $work->save() && $doc_log->save()) {
                     return $this->redirect(['view', 'id' => $model->id]);
                 }
             }
@@ -110,18 +174,18 @@ class WorklistController extends MyController
             $model->loadDefaultValues();
         }
 
+        $xabar = Xabar::find()
+            ->where(['work_id' => $id])
+            ->orderBy(['id' => SORT_DESC]) // San'atlarni ketma-ketlik bo'yicha tartiblash
+            ->one();
+
         return $this->render('edit', [
             'model' => $model,
             'id' => $id,
+            'xabar' => $xabar,
         ]);
     }
 
-    /**
-     * Displays a single Worklist model.
-     * @param int $id ID
-     * @return string
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionView($id)
     {
         return $this->render('view', [
@@ -129,11 +193,6 @@ class WorklistController extends MyController
         ]);
     }
 
-    /**
-     * Creates a new Worklist model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return string|\yii\web\Response
-     */
     public function actionCreate()
     {
         $model = new Worklist();
@@ -155,13 +214,6 @@ class WorklistController extends MyController
         ]);
     }
 
-    /**
-     * Updates an existing Worklist model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param int $id ID
-     * @return string|\yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
@@ -176,20 +228,13 @@ class WorklistController extends MyController
         ]);
     }
 
-
-    /**
-     * Deletes an existing Worklist model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param int $id ID
-     * @return \yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
 
         return $this->redirect(['index']);
     }
+
     public function actionDownload($id) {
         $path = Yii::getAlias('@frontend/web/uploads/depbartaraf/') . $id . '.pdf';
 
@@ -202,13 +247,6 @@ class WorklistController extends MyController
         }
     }
 
-    /**
-     * Finds the Worklist model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param int $id ID
-     * @return Worklist the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     protected function findModel($id)
     {
         if (($model = Worklist::findOne(['id' => $id])) !== null) {
