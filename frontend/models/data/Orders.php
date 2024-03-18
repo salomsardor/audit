@@ -2,6 +2,7 @@
 
 namespace app\models\data;
 
+use app\models\TekDavBartaraf;
 use Yii;
 use yii\web\UploadedFile;
 
@@ -51,6 +52,7 @@ class Orders extends \yii\db\ActiveRecord
             'code' => 'Farmoyish nomeri',
             'region_id' => 'Viloyat',
             'branch_id' => 'Filial',
+            'created_at' => 'Sana',
 //            'user_id' => 'User ID',
             'file' => 'Farmoyish fayli',
         ];
@@ -68,26 +70,6 @@ class Orders extends \yii\db\ActiveRecord
             }
         }
         return false;
-    }
-
-    /**
-     * Gets query for [[TekDavBartarafs]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getTekDavBartarafs()
-    {
-        return $this->hasMany(TekDavBartaraf::class, ['farmoish_id' => 'code']);
-    }
-
-    /**
-     * Gets query for [[TekdanKeyinBartarafs]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getTekdanKeyinBartarafs()
-    {
-        return $this->hasMany(TekdanKeyinBartaraf::class, ['farmoyish_id' => 'code']);
     }
 
 

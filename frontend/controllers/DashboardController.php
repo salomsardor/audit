@@ -82,6 +82,13 @@ class DashboardController extends Controller
             'model' => $model,
         ]);
     }
+    public function actionDashboard($year = "1", $region = '1', $farmoyish = '1')
+    {
+        $model = Work::find()->all();
+        return $this->render('dashboard', [
+            'model' => $model,
+        ]);
+    }
     public function actionView($id)
     {
         return $this->render('view', [

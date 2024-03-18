@@ -36,7 +36,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'value'=> function($model){
                     $user_id = $model->user_id;
                     $fio = \common\models\User::findOne($user_id);
-                    return $fio->fio;
+                    return $fio->fio??"-";
                 },
             ],
             'branch',

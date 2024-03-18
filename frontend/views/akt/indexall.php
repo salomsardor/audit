@@ -10,7 +10,7 @@ use yii\grid\GridView;
 /** @var app\models\data\OrdersSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
 
-$this->title = 'Фармойиш асосида далолатнома ҳосил қилиш';
+$this->title = 'Akt hosil qilish';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="orders-index">
@@ -29,7 +29,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'raw',
                 'value' => function ($model) {
                     $id =$model->code;
-                    $a = "<a href='viewfilial?id=$id'><i class='bi bi-folder' style='font-size: 30px;'></i></a>";
+                    $a = "<a href='view?id=$id'><i class='bi bi-folder' style='font-size: 30px;'></i></a>";
                     return $a;
                 },
             ],

@@ -5,11 +5,14 @@ use app\models\data\Departaments;
 use app\models\data\HeadMistakesGroup;
 use app\models\data\Regions;
 use app\models\Work;
+use yii\bootstrap5\LinkPager;
+use yii\data\Pagination;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\grid\ActionColumn;
 use yii\grid\GridView;
+use yii\widgets\ActiveForm;
 
 /** @var yii\web\View $this */
 /** @var app\models\search\WorkSearch $searchModel */
@@ -18,16 +21,42 @@ use yii\grid\GridView;
 $this->title = 'Aniqlangan kamchiliklar jadvali';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
+<script>
+    function exportExcel() {
+        var table = document.getElementById("source-table");
+        var html = table.outerHTML;
+        var url = 'data:application/vnd.ms-excel;charset=utf-8,' + encodeURIComponent(html);
+        var link = document.createElement("a");
+        link.href = url;
+        link.download = "table.xls";
+        link.click();
+    }
+
+</script>
 <div class="work-index">
 
-    <h1><?= Html::encode($this->title) ?></h1>
 
-    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
+
+    <?php  echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
-
+        'pager' => [
+            'class' => \yii\widgets\LinkPager::class,
+            'linkOptions' => ['class' => 'page-link'],
+            'options' => ['class' => 'pagination justify-content-center'],
+            'prevPageLabel' => '«',
+            'nextPageLabel' => '»',
+            'maxButtonCount' => 10,
+            'prevPageCssClass' => 'page-item',
+            'nextPageCssClass' => 'page-item',
+            'activePageCssClass' => 'active',
+            'disabledPageCssClass' => 'disabled',
+        ],
+        'tableOptions' => ['id' => 'source-table', 'class' => 'table table-striped table-bordered'],
+        'filterSelector' => 'select[name="WorkSearch[perPage]"]',
+        'options' => ['id' => 'table_id'],
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
 
@@ -116,12 +145,13 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
 
             [
-                'class' => ActionColumn::className(),
+                'class' => ActionColumn::class,
                 'urlCreator' => function ($action, Work $model, $key, $index, $column) {
                     return Url::toRoute([$action, 'id' => $model->id]);
                 }
             ],
         ],
     ]); ?>
+
 
 </div>

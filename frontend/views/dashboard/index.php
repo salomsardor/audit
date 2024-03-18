@@ -10,11 +10,23 @@ $umumiy = Work::find()->count();
 $departaments = \app\models\data\Departaments::find()->all();
 echo $this->render('_search', ['model' => $searchModel]);
 ?>
+<script>
+    function exportExcel() {
+        var table = document.getElementById("source-table");
+        var html = table.outerHTML;
+        var url = 'data:application/vnd.ms-excel;charset=utf-8,' + encodeURIComponent(html);
+        var link = document.createElement("a");
+        link.href = url;
+        link.download = "table.xls";
+        link.click();
+    }
+
+</script>
 <br>
 <div class="site-index">
     <div class="  bg-transparent rounded-3">
         <div class="  text-center">
-            <table class="table table-striped table-bordered">
+            <table class="table table-striped table-bordered" id="source-table">
                 <tr>
                     <th rowspan="3">Таркибий бўлинмалар номи</th>
                     <th colspan="4">Кредит амалиётлари бўйича камчиликлар</th>
@@ -67,7 +79,7 @@ echo $this->render('_search', ['model' => $searchModel]);
                     echo "<td>" . $departamentData['name'] . "</td>";
                     foreach ($departamentData['mistakes'] as $mistake) {
                         echo "<td>" . $mistake['son'] . "</td>";
-                        echo "<td>" . $mistake['sum'] . "</td>";
+                        echo "<td>" . ((float)$mistake['sum'] == 0 ? "-" : number_format((float)$mistake['sum'])) . "</td>";
                         echo "<td>" . $mistake['bartaraf_son'] . "</td>";
                         echo "<td>" . $mistake['bartaraf_sum'] . "</td>";
                     }

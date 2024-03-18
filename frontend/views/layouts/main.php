@@ -52,6 +52,12 @@ $tekshiruv = [
 ];
 $hisobot = [
     [
+        'label' => '<i class="menu-icon tf-icons bx bx-box"></i> Farmoyishlar',
+        'url' => ['/orders/index'],
+        'encode' => false,
+        'active' => Yii::$app->controller->id == 'orders',
+    ],
+    [
         'label' => '<i class="menu-icon tf-icons bx bx-receipt"></i> Umumiy',
         'url' => ['/dashboard/index'],
         'encode' => false,
@@ -87,12 +93,7 @@ $hisobot = [
         'encode' => false,
         'active' => Yii::$app->controller->id == 'davomat',
     ],
-    [
-        'label' => '<i class="menu-icon tf-icons bx bx-box"></i> Farmoyishlar',
-        'url' => ['/orders/index'],
-        'encode' => false,
-        'active' => Yii::$app->controller->id == 'orders',
-    ],
+
 
     // Boshqa menularni ham qo'shing va ularga mos holatni qo'shing
 ];
@@ -181,13 +182,6 @@ $sozlamalar = [
             <i class="bi bi-list toggle-sidebar-btn"></i>
         </div><!-- End Logo -->
 
-        <div class="search-bar">
-            <form class="search-form d-flex align-items-center" method="POST" action="#">
-                <input type="text" name="query" placeholder="Search" title="Enter search keyword">
-                <button type="submit" title="Search"><i class="bi bi-search"></i></button>
-            </form>
-        </div><!-- End Search Bar -->
-
         <nav class="header-nav ms-auto">
             <ul class="d-flex align-items-center">
 
@@ -233,7 +227,7 @@ $sozlamalar = [
     <aside id="sidebar" class="sidebar">
         <ul class="sidebar-nav" id="sidebar-nav">
             <li class="nav-item">
-                <?= Html::a('<i class="bi bi-grid"></i>dashboard', '/dashboard/index', ['class' => 'nav-link']) ?>
+                <?= Html::a('<i class="bi bi-grid"></i>dashboard', '/dashboard/dashboard', ['class' => 'nav-link']) ?>
             </li><!-- End Dashboard Nav -->
             <li class="nav-item">
                 <a class="nav-link <?= in_array(Yii::$app->controller->id, [ 'work', 'worklist', 'permission']) ? '' : 'collapsed' ?>"
@@ -252,13 +246,13 @@ $sozlamalar = [
                 </ul>
             </li><!-- Audit Tekshiruvi natijalari -->
             <li class="nav-item">
-                <a class="nav-link  <?= in_array(Yii::$app->controller->id, ['dashboard','davomat', 'kunlik','orders']) ? '' : 'collapsed' ?> "
+                <a class="nav-link  <?= in_array(Yii::$app->controller->id, ['dashboard','akt','davomat', 'kunlik','orders']) ? '' : 'collapsed' ?> "
                    data-bs-target="#tables-nav" data-bs-toggle="collapse" href="#">
                     <i class="bi bi-layout-text-window-reverse"></i><span>Hisobotlar</span><i
                             class="bi bi-chevron-down ms-auto"></i>
                 </a>
                 <ul id="tables-nav"
-                    class="nav-content collapse <?= in_array(Yii::$app->controller->id, ['dashboard','davomat', 'kunlik', 'orders',]) ? 'show' : '' ?>"
+                    class="nav-content collapse <?= in_array(Yii::$app->controller->id, ['dashboard','akt','davomat', 'kunlik', 'orders',]) ? 'show' : '' ?>"
                     data-bs-parent="#sidebar-nav">
                     <?php foreach ($hisobot as $item): ?>
                         <li class="nav-item">

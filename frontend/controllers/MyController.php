@@ -58,16 +58,13 @@ class MyController extends Controller
     {
         $mistakes = Mistakes::find()->where(['head_mistakes_group_code'=>$id])->all();
         $mistakesCounts = Mistakes::find()->where(['head_mistakes_group_code'=>$id])->count();
-
         if ($mistakesCounts>0) {
-
             foreach ($mistakes as $misktake) {
                 echo "<option value='".$misktake->code."'>".$misktake->name."</option>";
             }
         } else {
             echo "<option>-</option>";
         }
-
     }
 
     public function actionListmistakes($id)

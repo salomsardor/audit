@@ -64,12 +64,10 @@ class WorkController extends Controller
         );
     }
 
-
     public function actionIndex()
     {
         $searchModel = new WorkSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
-
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
@@ -184,7 +182,7 @@ class WorkController extends Controller
                     $model->user_id = $user_id;
                     $model->departament_id = $dep_id;
                     $model->comment = $comment;
-                    $model->work_status = 1;
+                    $model->work_status = 0;
                     $model->bartaraf_soni = $bartaraf_soni;
                     $model->uzlashtirish = Mistakes::findOne($item)->uzlashtirish;
 
@@ -574,12 +572,16 @@ class WorkController extends Controller
     {
         $model = $this->findModel($id);
 
+
         if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         }
 
+        $regions = Regions::find()->all();
+
         return $this->render('update', [
             'model' => $model,
+            'regions' => $regions
         ]);
     }
 

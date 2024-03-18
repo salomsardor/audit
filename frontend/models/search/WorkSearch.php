@@ -9,19 +9,24 @@ use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use app\models\Work;
+use yii\data\Pagination;
 
 /**
  * WorkSearch represents the model behind the search form of `app\models\Work`.
  */
 class WorkSearch extends Work
 {
+    public $start_data;
+    public $end_data;
+    public $perPage;
 
     public function rules()
     {
         return [
             [['id', 'farmoyish_id', 'region_id', 'branch_id', 'unical', 'head_mistakes_group_code', 'mistake_code', 'mistake_soni', 'work_status', 'user_id', 'departament_id'], 'integer'],
-            [['year', 'client_name', 'mistak_from_user', 'comment'], 'safe'],
-            [['mistake_sum'], 'number'],
+            [['year', 'client_name', 'start_data', 'end_data', 'mistak_from_user', 'comment'], 'safe'],
+            [['mistake_sum', 'perPage'], 'number'],
+
         ];
     }
 
@@ -45,20 +50,9 @@ class WorkSearch extends Work
                 ]);
             }
         }
-
         // add conditions that should always apply here
 
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => [
-                'pagesize' => 20,
-            ],
-            'sort' => [
-                'defaultOrder' => [
-                    'id' => SORT_DESC,
-                ],
-            ]
-        ]);
+
 
         $this->load($params);
 
@@ -84,10 +78,26 @@ class WorkSearch extends Work
             'departament_id' => $this->departament_id,
             'work_status' => $this->work_status,
         ]);
+        $start = empty($this->start_data) ? date('Y-m-d', strtotime('-1 month', strtotime(date('Y-m-d')))) : $this->start_data . " 00:00:01";
 
+        $end = $this->end_data . " 23:59:59";
         $query->andFilterWhere(['like', 'client_name', $this->client_name])
             ->andFilterWhere(['like', 'mistak_from_user', $this->mistak_from_user])
+            ->andFilterWhere(['between', 'create_at', $start, $end])
             ->andFilterWhere(['like', 'comment', $this->comment]);
+        if ($this->perPage == "" || $this->perPage == NULL || $this->perPage > 200) $this->perPage = 20;
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => $this->perPage,
+            ],
+            'sort' => [
+                'defaultOrder' => [
+                    'id' => SORT_DESC,
+                ],
+            ],
+        ]);
 
         return $dataProvider;
     }
@@ -278,16 +288,17 @@ class WorkSearch extends Work
             ];
             foreach ($head_mistakes as $head_mistake) {
                 $son = Work::find()
-                    ->where(['uzlashtirish'=>1, 'departament_id' => $departament->id, 'head_mistakes_group_code' => $head_mistake->code])
+                    ->where(['uzlashtirish' => 1, 'departament_id' => $departament->id, 'head_mistakes_group_code' => $head_mistake->code])
                     ->andFilterWhere([
                         'farmoyish_id' => $this->farmoyish_id,
                         'region_id' => $this->region_id,
+                        'branch_id' => $this->branch_id,
                         'year' => $this->year,
                     ])
                     ->sum('mistake_soni');
                 if ($son > 0) {
                     $sum = Work::find()
-                        ->where(['uzlashtirish'=>1, 'departament_id' => $departament->id, 'head_mistakes_group_code' => $head_mistake->code])
+                        ->where(['uzlashtirish' => 1, 'departament_id' => $departament->id, 'head_mistakes_group_code' => $head_mistake->code])
                         ->andFilterWhere([
                             'farmoyish_id' => $this->farmoyish_id,
                             'region_id' => $this->region_id,

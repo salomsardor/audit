@@ -1,7 +1,10 @@
 <?php
 
+use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
+use yii\jui\DatePicker;
 use yii\widgets\ActiveForm;
+
 
 /** @var yii\web\View $this */
 /** @var app\models\search\WorkSearch $model */
@@ -14,40 +17,47 @@ use yii\widgets\ActiveForm;
         'action' => ['index'],
         'method' => 'get',
     ]); ?>
+    <div class="row">
 
-    <?= $form->field($model, 'id') ?>
+        <div class="col-md-1">
+            <?= $form->field($model, 'start_data')->widget(DatePicker::classname(), [
+                'options' => ['placeholder' => 'Enter date ...', 'class' => 'form-control'],
+                'dateFormat' => 'php:Y-m-d',
+                'clientOptions' => [
+                    'autoclose' => true,
+                    'format' => 'MM d, yyyy',
+                    'todayHighlight' => true,
+                ],
+            ])->label(''); ?>
+        </div>
+        <div class="col-md-1">
+            <?= $form->field($model, 'end_data')->widget(DatePicker::classname(), [
+                'options' => ['placeholder' => 'Enter date ...', 'class' => 'form-control'],
+                'dateFormat' => 'php:Y-m-d',
+                'clientOptions' => [
+                    'autoclose' => true,
+                    'format' => 'MM d, yyyy',
+                    'todayHighlight' => true,
+                ],
+            ])->label(''); ?>
+        </div>
 
-    <?= $form->field($model, 'farmoyish_id') ?>
 
-    <?= $form->field($model, 'region_id') ?>
-
-    <?= $form->field($model, 'branch_id') ?>
-
-    <?= $form->field($model, 'year') ?>
-
-    <?php // echo $form->field($model, 'unical') ?>
-
-    <?php // echo $form->field($model, 'client_name') ?>
-
-    <?php // echo $form->field($model, 'head_mistakes_group_code') ?>
-
-    <?php // echo $form->field($model, 'mistake_code') ?>
-
-    <?php // echo $form->field($model, 'mistake_soni') ?>
-
-    <?php // echo $form->field($model, 'mistake_sum') ?>
-
-    <?php // echo $form->field($model, 'mistak_from_user') ?>
-
-    <?php // echo $form->field($model, 'user_id') ?>
-
-    <?php // echo $form->field($model, 'departament_id') ?>
-
-    <?php // echo $form->field($model, 'comment') ?>
-
-    <div class="form-group">
-        <?= Html::submitButton('Search', ['class' => 'btn btn-primary']) ?>
-        <?= Html::resetButton('Reset', ['class' => 'btn btn-outline-secondary']) ?>
+        <div class="col-md-3">
+            <div class="form-group"><br>
+                <?= Html::submitButton('Qidirish', ['class' => 'btn btn-primary']) ?>
+                <?= Html::resetButton('Tozalash', ['class' => 'btn btn-outline-secondary']) ?>
+                <?= Html::resetButton('Yuklab olish', ['onclick' => 'exportExcel()', 'class' => 'btn btn-success']) ?>
+            </div>
+        </div>
+        <div class="col-md-6"></div>
+        <div class="col-md-1">
+            <?= $form->field($model, 'perPage')->dropDownList([
+                20 => 20,
+                50 => 50,
+                100 => 100,
+            ], ['prompt' => 'Select'])->label('') ?>
+        </div>
     </div>
 
     <?php ActiveForm::end(); ?>
