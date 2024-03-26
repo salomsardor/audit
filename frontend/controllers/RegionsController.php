@@ -5,6 +5,7 @@ namespace frontend\controllers;
 use app\models\AuthAssignment;
 use app\models\data\Regions;
 use app\models\data\RegionsSearch;
+use Yii;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;

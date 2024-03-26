@@ -28,34 +28,37 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => '',
                 'format' => 'raw',
                 'value' => function ($model) {
-                    $id =$model->code;
+                    $id = $model->code;
                     $a = "<a href='viewfilial?id=$id'><i class='bi bi-folder' style='font-size: 30px;'></i></a>";
                     return $a;
                 },
             ],
             'code',
             [
-                'attribute'=>'region_id',
-                'filter'=>\yii\helpers\ArrayHelper::map(\app\models\data\Regions::find()->all(),'id','name'),
+                'attribute' => 'region_id',
+                'filter' => \yii\helpers\ArrayHelper::map(\app\models\data\Regions::find()->all(), 'id', 'name'),
                 'value' => function ($model) {
                     $region_name = \app\models\data\Regions::findOne($model->region_id);
                     return $region_name->name; // region nomini chiqarish
                 },
             ],
             [
-                'attribute'=>'branch_id',
-                'filter'=>\yii\helpers\ArrayHelper::map(\app\models\data\Branches::find()->all(),'id','name'),
+                'attribute' => 'branch_id',
+                'filter' => \yii\helpers\ArrayHelper::map(\app\models\data\Branches::find()->all(), 'id', 'name'),
                 'value' => function ($model) {
-                    if (isset($model->branch_id)){
-                        $branch_name = \app\models\data\Branches::findOne($model->branch_id);
-                        $branch_name = $branch_name->name;
+                    $branch_name = '';
+                    if ($model->branch_id !== null) {
+                        $branch = \app\models\data\Branches::findOne($model->branch_id);
+                        $branch_name = "barcha viloyat filiallari";
+                        if ($branch !== null) {
+                            $branch_name = $branch->name;
+                        }
                     }
-                    else $branch_name = "viloyat filiallari";
                     return $branch_name; // branch nomini chiqarish
                 },
             ],
             [
-                'attribute'=>'file',
+                'attribute' => 'file',
                 'format' => 'raw',
                 'value' => function ($model) {
                     $yuklash = $model->file;

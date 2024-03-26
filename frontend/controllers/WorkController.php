@@ -307,7 +307,8 @@ class WorkController extends Controller
     public function actionImport()
     {
         $model = new CodeForm();
-
+        echo ini_get('memory_limit');
+die();
         if (Yii::$app->request->isPost) {
             $model->file = UploadedFile::getInstance($model, 'file');
             $user_id = Yii::$app->user->id ?? 1;
@@ -350,7 +351,11 @@ class WorkController extends Controller
                     } else $a = $excelDatum["AF"];
                     $work->mistak_from_user = $a;
                     $work->user_id = $user_id;
-                    $work->departament_id = Departaments::findOne(['name' => $excelDatum["AI"]])->id;
+                    $dep =  Departaments::findOne(['name' => $excelDatum["AI"]]);
+                    if ($dep === null) {
+                        echo "<script>alert('".$excelDatum["A"]." qatorda ".$excelDatum["AI"]." ma\'lumot bazadan  topilmadi. Xatolik!');</script>";
+                        die();
+                    }else $work->departament_id = $dep->id;
                     $work->comment = $excelDatum["AJ"] ?? '-';
                     $work->uzlashtirish = Mistakes::findOne($excelDatum["I"])->uzlashtirish ?? 0;
 
@@ -477,6 +482,211 @@ class WorkController extends Controller
                         $new_work->uzlashtirish = $work->uzlashtirish;
 
                         if ($work->save() && $new_work->save()) {
+                            continue;
+                        } else {
+                            echo '<script>alert("№ ' . $excelDatum["A"] . ' qatorda  Xatolik 006  - ");</script>';
+                            print_r($excelDatum["A"]);
+                            var_dump($work->errors);
+                            die();
+                        }
+                    } else {
+                        die($excelDatum["A"] . " - qatorni  tekshiring :::0000007");
+
+                    }
+                }
+
+
+            }
+            $uploadsDirectory = 'uploads/';
+
+            $files = glob($uploadsDirectory . '*');
+            foreach ($files as $file) {
+                if (is_file($file))
+                    unlink($file);
+            }
+            $this->redirect("https://audit.ingo.uz/frontend/web/work/index");
+        }
+
+        return $this->render('import', ['model' => $model]);
+    }
+
+    public function actionImporttest()
+    {
+        $model = new CodeForm();
+
+        if (Yii::$app->request->isPost) {
+            $model->file = UploadedFile::getInstance($model, 'file');
+            $user_id = Yii::$app->user->id ?? 1;
+            if ($model->upload()) {
+                $excelData = $model->getArrayDataFromExcel();
+                // Fayldagi ma'lumotlarni ekranga chiqarish
+                echo "<pre>";
+                unset($excelData[1]);
+                foreach ($excelData as $excelDatum) {
+                    $work = new Work();
+                    $msitake_son = (int)$excelDatum["L"] ?? 0;
+                    $msitake_sum = (int)(($excelDatum["M"] ?? 0) * 1000);
+                    $bartaraf_son = (int)$excelDatum["N"] ?? 0;
+                    $bartaraf_sum = (int)(($excelDatum["O"] ?? 0) * 1000);
+
+                    $branch = Branches::findOne(['name' => ($excelDatum["F"] ?? 0)]);
+                    if ($branch !== null) {
+                        $work->branch_id = $branch->id;
+                    } else {
+                        die($excelDatum["A"] . " - qatordagi " . $excelDatum["F"] . " ni tekshiring :::1");
+                    }
+                    $work->branch_id = $branch->id;
+                    $work->region_id = ((int)$excelDatum["B"]) ?? 0;
+                    $work->farmoyish_id = $excelDatum["AK"] ?? 0;
+                    $work->year = $excelDatum["D"] ?? 0;
+                    $unical = strlen(($excelDatum["G"] ?? "00"));
+                    if ($unical == 20) {
+                        $work->unical = 0;
+                        $work->hisob_raqam = $excelDatum["G"];
+                    } else {
+                        $work->unical = $excelDatum["G"] ?? 0;
+                        $work->hisob_raqam = "0";
+                    }
+                    $work->client_name = $excelDatum["H"] ?? 0;
+                    $work->head_mistakes_group_code = substr($excelDatum["I"], 0, 4) ?? 0;
+                    $work->mistake_code = $excelDatum["I"] ?? 0;
+                    $work->status = Status::findOne(['name' => $excelDatum["K"]])->id ?? 0;
+                    if ($excelDatum["AF"] == '' || $excelDatum["AF"] == null) {
+                        $a = 'no';
+                    } else $a = $excelDatum["AF"];
+                    $work->mistak_from_user = $a;
+                    $work->user_id = $user_id;
+                    $dep =  Departaments::findOne(['name' => $excelDatum["AI"]]);
+                    if ($dep === null) {
+                        echo "<script>alert('".$excelDatum["A"]." qatorda ".$excelDatum["AI"]." ma\'lumot bazadan  topilmadi. Xatolik!');</script>";
+                        die();
+                    }else $work->departament_id = $dep->id;
+                    $work->comment = $excelDatum["AJ"] ?? '-';
+                    $work->uzlashtirish = Mistakes::findOne($excelDatum["I"])->uzlashtirish ?? 0;
+
+                    if ($msitake_sum == $bartaraf_sum && $msitake_sum != 0) {
+                        $work->mistake_soni = $msitake_son;
+                        $work->mistake_sum = $msitake_sum;
+                        $work->bartaraf_soni = $bartaraf_son;
+                        $work->bartaraf_sum = $bartaraf_sum;
+                        $work->work_status = 3;
+                        if ($work->validate()) {
+                            continue;
+                        } else {
+                            echo '<script>alert("№ ' . $excelDatum["A"] . ' qatorda  Xatolik 001  - ");</script>';
+                            print_r($excelDatum["A"]);
+                            var_dump($work->errors);
+                            die();
+                        }
+                    } elseif (($msitake_sum > 0) && ($bartaraf_sum > 0) && ($msitake_sum > $bartaraf_sum)) {
+                        $work->mistake_soni = $msitake_son;
+                        $work->mistake_sum = $bartaraf_sum;
+                        $work->bartaraf_soni = $bartaraf_son;
+                        $work->bartaraf_sum = $bartaraf_sum;
+                        $work->work_status = 3;
+
+                        $new_work = new Work();
+                        $new_work->mistake_soni = $msitake_son;
+                        $new_work->mistake_sum = ($msitake_sum - $bartaraf_sum);
+                        $new_work->bartaraf_soni = 0;
+                        $new_work->bartaraf_sum = 0;
+                        $new_work->work_status = 0;
+                        $new_work->branch_id = $work->branch_id;
+                        $new_work->region_id = $work->region_id;
+                        $new_work->farmoyish_id = $work->farmoyish_id;
+                        $new_work->year = $work->year;
+                        $new_work->unical = $work->unical;
+                        $new_work->hisob_raqam = $work->hisob_raqam;
+                        $new_work->client_name = $work->client_name;
+                        $new_work->head_mistakes_group_code = $work->head_mistakes_group_code;
+                        $new_work->mistake_code = $work->mistake_code;
+                        $new_work->status = $work->status;
+                        $new_work->mistak_from_user = $work->mistak_from_user;
+                        $new_work->user_id = $work->user_id;
+                        $new_work->departament_id = $work->departament_id;
+                        $new_work->comment = $work->comment;
+                        $new_work->uzlashtirish = $work->uzlashtirish;
+                        if ($work->validate() && $new_work->validate()) {
+                            continue;
+                        } else {
+                            echo '<script>alert("№ ' . $excelDatum["A"] . ' qatorda  Xatolik 002  - ");</script>';
+                            print_r($excelDatum["A"]);
+                            var_dump($work->errors);
+                            var_dump($new_work->errors);
+                            die();
+                        }
+                    } elseif (($msitake_sum > 0) && ($bartaraf_sum == 0)) {
+                        $work->mistake_soni = $msitake_son;
+                        $work->mistake_sum = $msitake_sum;
+                        $work->bartaraf_soni = 0;
+                        $work->bartaraf_sum = 0;
+                        $work->work_status = 0;
+                        if ($work->validate()) {
+                            continue;
+                        } else {
+                            echo '<script>alert("№ ' . $excelDatum["A"] . ' qatorda  Xatolik 003  - ");</script>';
+                            print_r($excelDatum["A"]);
+                            var_dump($work->errors);
+                            die();
+                        }
+                    } elseif (($msitake_son > 0) && ($bartaraf_son == 0)) {
+                        $work->mistake_soni = $msitake_son;
+                        $work->mistake_sum = $msitake_sum;
+                        $work->bartaraf_soni = $bartaraf_son;
+                        $work->bartaraf_sum = $bartaraf_sum;
+                        $work->work_status = 0;
+                        if ($work->validate()) {
+                            continue;
+                        } else {
+                            echo '<script>alert("№ ' . $excelDatum["A"] . ' qatorda  Xatolik 004  - ");</script>';
+                            print_r($excelDatum["A"]);
+                            var_dump($work->errors);
+                            die();
+                        }
+                    } elseif (($msitake_sum == 0) && ($bartaraf_sum == 0) && ($msitake_son > 0) && ($msitake_son == $bartaraf_son)) {
+                        $work->mistake_soni = $msitake_son;
+                        $work->mistake_sum = 0;
+                        $work->bartaraf_soni = $bartaraf_son;
+                        $work->bartaraf_sum = 0;
+                        $work->work_status = 3;
+                        if ($work->validate()) {
+                            continue;
+                        } else {
+                            echo '<script>alert("№ ' . $excelDatum["A"] . ' qatorda  Xatolik 005  - ");</script>';
+                            print_r($excelDatum["A"]);
+                            var_dump($work->errors);
+                            die();
+                        }
+                    } elseif (($msitake_sum == 0) && ($bartaraf_sum == 0) && ($msitake_son > 0) && ($msitake_son > $bartaraf_son)) {
+                        $work->mistake_soni = $bartaraf_son;
+                        $work->mistake_sum = 0;
+                        $work->bartaraf_soni = $bartaraf_son;
+                        $work->bartaraf_sum = 0;
+                        $work->work_status = 3;
+
+                        $new_work = new Work();
+                        $new_work->mistake_soni = ($msitake_son - $bartaraf_son);
+                        $new_work->mistake_sum = 0;
+                        $new_work->bartaraf_soni = 0;
+                        $new_work->bartaraf_sum = 0;
+                        $new_work->work_status = 0;
+                        $new_work->branch_id = $work->branch_id;
+                        $new_work->region_id = $work->region_id;
+                        $new_work->farmoyish_id = $work->farmoyish_id;
+                        $new_work->year = $work->year;
+                        $new_work->unical = $work->unical;
+                        $new_work->hisob_raqam = $work->hisob_raqam;
+                        $new_work->client_name = $work->client_name;
+                        $new_work->head_mistakes_group_code = $work->head_mistakes_group_code;
+                        $new_work->mistake_code = $work->mistake_code;
+                        $new_work->status = $work->status;
+                        $new_work->mistak_from_user = $work->mistak_from_user;
+                        $new_work->user_id = $work->user_id;
+                        $new_work->departament_id = $work->departament_id;
+                        $new_work->comment = $work->comment;
+                        $new_work->uzlashtirish = $work->uzlashtirish;
+
+                        if ($work->validate() && $new_work->validate()) {
                             continue;
                         } else {
                             echo '<script>alert("№ ' . $excelDatum["A"] . ' qatorda  Xatolik 006  - ");</script>';

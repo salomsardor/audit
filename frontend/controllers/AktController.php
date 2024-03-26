@@ -90,11 +90,6 @@ class AktController extends Controller
                 ->groupBy(['mistake_code'])
                 ->asArray()
                 ->all();
-//            echo "<pre>";
-//var_dump($mistakes); die();
-//            echo "$mistakes";
-
-//                $branchData['mistake_code'] = $soni;
             $branchData['total_mistake_soni'] = $soni;
             $branchData['total_mistake_summasi'] = $summasi;
             $branchesData[] = $branchData;
@@ -202,6 +197,7 @@ class AktController extends Controller
             ->join('JOIN', 'branches', 'work.branch_id = branches.id')
             ->groupBy('branch_id')
             ->where(['farmoyish_id' => $id])
+            ->orderBy('branches.name')
             ->asArray()
             ->all();
 
@@ -254,12 +250,34 @@ class AktController extends Controller
                 $i = 0;
                 foreach ($mistakesGroup as $mistake) {
                     $i++;
+                    $bartaraf_son = Work::find()
+                        ->where([
+                            'farmoyish_id' => $id,
+                            'branch_id' => $branch_id,
+                            'work.head_mistakes_group_code' => $headMistakeGroupCode['head_mistakes_group_code'],
+                            'mistake_code' => $mistake['mistake_code'],
+                            'work_status' => 3,
+                        ])
+                        ->sum('mistake_soni');
+                    $bartaraf_sum = Work::find()
+                        ->where([
+                            'farmoyish_id' => $id,
+                            'branch_id' => $branch_id,
+                            'work.head_mistakes_group_code' => $headMistakeGroupCode['head_mistakes_group_code'],
+                            'mistake_code' => $mistake['mistake_code'],
+                            'work_status' => 3,
+                        ])
+                        ->sum('mistake_sum');
 
                     $items[$i] = [
-                        'mistake_code' => $mistake['name'],
+                        'mistake_code' => $mistake['mistake_code'],
+                        'mistake_name' => $mistake['name'],
                         'mistake_soni' => $mistake['mistake_soni'],
                         'mistake_sum' => $mistake['mistake_sum'],
+                        'bartaraf_son' => $bartaraf_son,
+                        'bartaraf_sum' => $bartaraf_sum,
                         'clients' => [],
+                        'bartaraf' => [],
                     ];
 
                     $clients = Work::find()
@@ -273,6 +291,24 @@ class AktController extends Controller
                             'mistake_sum' => $client['mistake_sum'],
                         ];
                     }
+
+                    $bartaraf = Work::find()
+                        ->select(['mistake_code', 'client_name', 'mistake_sum'])
+                        ->where([
+                            'farmoyish_id' => $id,
+                            'branch_id' => $branch_id,
+                            'head_mistakes_group_code' => $headMistakeGroupCode['head_mistakes_group_code'],
+                            'mistake_code' => $mistake['mistake_code'],
+                            'work_status' => "3",
+                        ])
+                        ->asArray()
+                        ->all();
+                    foreach ($bartaraf as $bartaraf_client) {
+                        $items[$i]['bartaraf'][] = [
+                            'client_name' => $bartaraf_client['client_name'],
+                            'mistake_sum' => $bartaraf_client['mistake_sum'],
+                        ];
+                    }
                 }
 
                 $branchData['items'][] = [
@@ -282,6 +318,7 @@ class AktController extends Controller
             }
 
             $salomlar[] = $branchData;
+
         }
         return $this->render('view_filial', [
             'id' => $id,
