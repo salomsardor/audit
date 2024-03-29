@@ -64,6 +64,19 @@ class BranchesController extends Controller
         ]);
     }
 
+    public function actionMail()
+    {
+        $result = Yii::$app->mailer->compose()
+            ->setFrom('test@ingo.uz')
+            ->setTo('s.yuldashev@ingo.uz')
+            ->setSubject('ok subject')
+            ->setTextBody('ok text body')
+            ->setHtmlBody('ok HTML')
+            ->send();
+        var_dump($result);
+        die();
+    }
+
 
     public function actionView($id)
     {

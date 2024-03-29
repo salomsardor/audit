@@ -13,7 +13,7 @@ use kartik\export\ExportMenu;
 /** @var app\models\WorklistSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
 
-$this->title = 'Bartaraf qilingan kamchiliklar tarixi';
+$this->title = 'Бартараф қилинган камчиликлар тарихи';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="worklist-index">

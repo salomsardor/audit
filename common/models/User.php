@@ -29,6 +29,10 @@ class User extends ActiveRecord implements IdentityInterface
     const STATUS_INACTIVE = 9;
     const STATUS_ACTIVE = 10;
 
+    public $currentPassword;
+    public $newPassword;
+    public $newPasswordConfirm;
+
     public $verification_token;
     /**
      * {@inheritdoc}
@@ -56,7 +60,27 @@ class User extends ActiveRecord implements IdentityInterface
         return [
             ['status', 'default', 'value' => self::STATUS_INACTIVE],
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_DELETED]],
+
+            [['currentPassword', 'newPassword', 'newPasswordConfirm'], 'required'],
+            [['currentPassword'], 'validateCurrentPassword'],
+
+            [['newPassword','newPasswordConfirm'], 'string', 'min'=>6],
+            [['newPassword','newPasswordConfirm'], 'filter', 'filter'=>'trim'],
+            [['newPasswordConfirm'], 'compare', 'compareAttribute'=>'newPassword', 'message'=>'yangi parollar mos emas!!!'],
         ];
+    }
+
+    public function validateCurrentPassword()
+    {
+        if (!$this->verifyPassword($this->currentPassword))
+        {
+            $this->addError("currentPassword", "Старый пароль неправильный!!!");
+        }
+    }
+    public function verifyPassword($password)
+    {
+        $dbpassword = static::findOne(['username'=>Yii::$app->user->identity->username, 'status'=>self::STATUS_ACTIVE])->password_hash;
+        return Yii::$app->security->validatePassword($password,$dbpassword);
     }
 
     /**
@@ -110,7 +134,8 @@ class User extends ActiveRecord implements IdentityInterface
      * @param string $token verify email token
      * @return static|null
      */
-    public static function findByVerificationToken($token) {
+    public static function findByVerificationToken($token)
+    {
         return static::findOne([
             'verification_token' => $token,
             'status' => self::STATUS_INACTIVE
@@ -129,7 +154,7 @@ class User extends ActiveRecord implements IdentityInterface
             return false;
         }
 
-        $timestamp = (int) substr($token, strrpos($token, '_') + 1);
+        $timestamp = (int)substr($token, strrpos($token, '_') + 1);
         $expire = Yii::$app->params['user.passwordResetTokenExpire'];
         return $timestamp + $expire >= time();
     }

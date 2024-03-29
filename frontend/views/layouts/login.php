@@ -24,7 +24,7 @@ AppAsset::register($this);
         <title><?= Html::encode($this->title) ?></title>
         <?php $this->head() ?>
     </head>
-    <body class="d-flex flex-column h-100" style="background-color: #2b3035; color: white;">
+    <body class="d-flex flex-column h-100" style="background-image: url(/img/backgraund.jpeg); background-repeat: no-repeat; background-position: 50%; background-size: 100%">
     <?php $this->beginBody() ?>
     <div class="container">
         <?= $content ?>
@@ -32,12 +32,8 @@ AppAsset::register($this);
 
     <?php $this->endBody() ?>
     </body>
-
-
     <main role="main" class="flex-shrink-0">
-
     </main>
-
     <?php $this->endBody() ?>
     </body>
 
